@@ -1,51 +1,57 @@
 import cv2
 import numpy as np
 import pygetwindow as gw
+import pygame
+import time
 
 # 创建一个VideoCapture对象，参数0表示使用默认的摄像头
 cap = cv2.VideoCapture(0)
 
-# 检查是否成功打开摄像头
-if not cap.isOpened():
-    # 创建一个空窗口，标题为“无可用摄像头”
-    cv2.namedWindow("无可用摄像头", cv2.WINDOW_NORMAL)
-    while True:
-        # 检查窗口是否关闭
-        if not gw.getWindowsWithTitle('无可用摄像头'):
-            break
-        # 显示一个黑色画面
-        cv2.imshow("无可用摄像头", np.zeros((480, 640), dtype=np.uint8))
-        # 按下q键时，退出循环
-        if cv2.waitKey(1) == ord('q'):
-            break
-    cv2.destroyAllWindows()
-else:
-    cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
-    while True:
-        # 从摄像头读取帧
-        ret, frame = cap.read()
+def play_sound():
+    pygame.mixer.init()
+    pygame.mixer.music.load("doorbell.mp3")
+    pygame.mixer.music.play()
 
-        if not ret:
-            break
+def draw_button(frame):
+    cv2.rectangle(frame, (420, 420), (620, 480), (0, 255, 0), -1)
+    cv2.putText(frame, 'DoorBell', (450, 470), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
-        # 检查窗口是否关闭
-        if not gw.getWindowsWithTitle('Camera'):
-            break
+def mouse_event(event, x, y, flags, param):
+    if event == cv2.EVENT_LBUTTONUP:
+        if 420 < x < 620 and 420 < y < 480:
+            play_sound()
 
-        # 获取窗口大小
-        win = gw.getWindowsWithTitle('Camera')[0]
-        width, height = win.size
+cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
+cv2.setMouseCallback('Camera', mouse_event)
 
-        # 重设帧大小以适应窗口
-        frame = cv2.resize(frame, (width, height))
+while True:
+    # 从摄像头读取帧
+    ret, frame = cap.read()
 
-        # 显示帧
-        cv2.imshow('Camera', frame)
+    if not ret:
+        break
 
-        # 按下q键时，退出循环
-        if cv2.waitKey(1) == ord('q'):
-            break
+    # 检查窗口是否关闭
+    if not gw.getWindowsWithTitle('Camera'):
+        break
 
-    # 释放摄像头资源并关闭窗口
-    cap.release()
-    cv2.destroyAllWindows()
+    # 获取窗口大小
+    win = gw.getWindowsWithTitle('Camera')[0]
+    width, height = win.size
+
+    # 重设帧大小以适应窗口
+    frame = cv2.resize(frame, (width, height))
+
+    # 绘制按钮
+    draw_button(frame)
+
+    # 显示帧
+    cv2.imshow('Camera', frame)
+
+    # 按下q键时，退出循环
+    if cv2.waitKey(1) == ord('q'):
+        break
+
+# 释放摄像头资源并关闭窗口
+cap.release()
+cv2.destroyAllWindows()
