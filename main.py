@@ -13,12 +13,12 @@ def play_sound():
     pygame.mixer.music.play()
 
 def draw_button(frame):
-    cv2.rectangle(frame, (420, 420), (620, 480), (0, 255, 0), -1)
-    cv2.putText(frame, 'DoorBell', (450, 470), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
+    cv2.rectangle(frame, (20, 20), (220, 80), (125, 170, 205), -1)
+    cv2.putText(frame, 'DoorBell', (50, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
 def mouse_event(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONUP:
-        if 420 < x < 620 and 420 < y < 480:
+        if 20 < x < 220 and 20 < y < 80:
             play_sound()
 
 cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
