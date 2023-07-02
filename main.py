@@ -1,53 +1,51 @@
 import cv2
 import numpy as np
-import tkinter as tk
-from PIL import Image, ImageTk
+import pygetwindow as gw
 
 # 创建一个VideoCapture对象，参数0表示使用默认的摄像头
 cap = cv2.VideoCapture(0)
 
-# 获取摄像头的宽度和高度
-ret, frame = cap.read()
-height, width, _ = frame.shape
-aspect_ratio = width / height
+# 检查是否成功打开摄像头
+if not cap.isOpened():
+    # 创建一个空窗口，标题为“无可用摄像头”
+    cv2.namedWindow("无可用摄像头", cv2.WINDOW_NORMAL)
+    while True:
+        # 检查窗口是否关闭
+        if not gw.getWindowsWithTitle('无可用摄像头'):
+            break
+        # 显示一个黑色画面
+        cv2.imshow("无可用摄像头", np.zeros((480, 640), dtype=np.uint8))
+        # 按下q键时，退出循环
+        if cv2.waitKey(1) == ord('q'):
+            break
+    cv2.destroyAllWindows()
+else:
+    cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
+    while True:
+        # 从摄像头读取帧
+        ret, frame = cap.read()
 
-# 创建一个Tkinter窗口
-root = tk.Tk()
+        if not ret:
+            break
 
-# 创建一个Canvas用于显示图像
-canvas = tk.Canvas(root, width = width, height = height)
-canvas.pack()
+        # 检查窗口是否关闭
+        if not gw.getWindowsWithTitle('Camera'):
+            break
 
-while True:
-    # 从摄像头读取帧
-    ret, frame = cap.read()
+        # 获取窗口大小
+        win = gw.getWindowsWithTitle('Camera')[0]
+        width, height = win.size
 
-    if not ret:
-        break
+        # 重设帧大小以适应窗口
+        frame = cv2.resize(frame, (width, height))
 
-    # 更新窗口尺寸
-    window_width = root.winfo_width()
-    window_height = root.winfo_height()
-    if window_width / window_height > aspect_ratio:
-        window_width = window_height * aspect_ratio
-    else:
-        window_height = window_width / aspect_ratio
+        # 显示帧
+        cv2.imshow('Camera', frame)
 
-    root.geometry("%dx%d" % (int(window_width), int(window_height)))
+        # 按下q键时，退出循环
+        if cv2.waitKey(1) == ord('q'):
+            break
 
-    # 将OpenCV图像转换为Tkinter图像
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    frame = Image.fromarray(frame)
-    frame = frame.resize((int(window_width), int(window_height)), Image.ANTIALIAS)
-    frame = ImageTk.PhotoImage(image=frame)
-
-    # 在Canvas上绘制图像
-    canvas.create_image(0, 0, anchor = tk.NW, image = frame)
-
-    # 更新Canvas的尺寸
-    canvas.config(width=int(window_width), height=int(window_height))
-
-    # 更新Tkinter窗口
-    root.update()
-
-cap.release()
+    # 释放摄像头资源并关闭窗口
+    cap.release()
+    cv2.destroyAllWindows()
